@@ -1,0 +1,143 @@
+version: "3.9"
+
+services:
+  gateway:
+    image: nginx:1.27-alpine
+    depends_on:
+      - api-registry
+      - web
+      - auth-service
+      - booking-service
+      - equipment-service
+      - pricing-service
+      - payment-service
+      - notification-service
+      - analytics-service
+      - display-service
+    ports:
+      - "8080:80"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.web
+    environment:
+      NEXT_PUBLIC_NOTIFICATION_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+
+  api-registry:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args:
+        WORKSPACE: services/api-gateway
+    environment:
+      PORT: 4000
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args:
+        WORKSPACE: services/auth-service
+    environment:
+      PORT: 4001
+
+  booking-service:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args:
+        WORKSPACE: services/booking-service
+    environment:
+      PORT: 4002
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/courthub
+      REDIS_URL: redis://redis:6379
+
+  equipment-service:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args:
+        WORKSPACE: services/equipment-service
+    environment:
+      PORT: 4003
+
+  pricing-service:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args:
+        WORKSPACE: services/pricing-service
+    environment:
+      PORT: 4004
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args:
+        WORKSPACE: services/payment-service
+    environment:
+      PORT: 4005
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args:
+        WORKSPACE: services/notification-service
+    environment:
+      PORT: 4006
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args:
+        WORKSPACE: services/analytics-service
+    environment:
+      PORT: 4007
+
+  display-service:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.service
+      args:
+        WORKSPACE: services/display-service
+    environment:
+      PORT: 4008
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: courthub
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./infra/seeds/001_seed.sql:/docker-entrypoint-initdb.d/002_seed.sql:ro
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  mongo:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_DATABASE: courthub_logs
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  postgres-data:
+  mongo-data:

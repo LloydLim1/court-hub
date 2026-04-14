@@ -1,0 +1,24 @@
+ARG WORKSPACE
+
+FROM node:20-alpine AS build
+ARG WORKSPACE
+WORKDIR /app
+
+COPY package.json tsconfig.base.json ./
+COPY packages/domain/package.json packages/domain/package.json
+COPY ${WORKSPACE}/package.json ${WORKSPACE}/package.json
+
+RUN npm install
+
+COPY . .
+RUN npm run build --workspace @courthub/domain && npm run build --workspace ${WORKSPACE}
+
+FROM node:20-alpine AS runtime
+ARG WORKSPACE
+WORKDIR /app
+ENV NODE_ENV=production
+ENV WORKSPACE=${WORKSPACE}
+
+COPY --from=build /app /app
+EXPOSE 4000
+CMD ["sh", "-c", "npm run start --workspace $WORKSPACE"]

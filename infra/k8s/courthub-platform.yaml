@@ -1,0 +1,482 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: courthub
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: courthub-config
+  namespace: courthub
+data:
+  NEXT_PUBLIC_NOTIFICATION_URL: "https://api.courthub.local"
+  DATABASE_URL: "postgres://postgres:postgres@postgres.courthub.svc.cluster.local:5432/courthub"
+  REDIS_URL: "redis://redis.courthub.svc.cluster.local:6379"
+  MONGO_URL: "mongodb://mongo.courthub.svc.cluster.local:27017/courthub_logs"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: courthub-secrets
+  namespace: courthub
+type: Opaque
+stringData:
+  JWT_SECRET: "replace-me"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: courthub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: courthub/web:latest
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: courthub-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: courthub
+spec:
+  selector:
+    app: web
+  ports:
+    - port: 3000
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: courthub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: gateway-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+      volumes:
+        - name: gateway-config
+          configMap:
+            name: gateway-nginx-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-nginx-config
+  namespace: courthub
+data:
+  nginx.conf: |
+    events {}
+    http {
+      upstream web_app { server web:3000; }
+      upstream auth_service { server auth-service:4001; }
+      upstream booking_service { server booking-service:4002; }
+      upstream equipment_service { server equipment-service:4003; }
+      upstream pricing_service { server pricing-service:4004; }
+      upstream payment_service { server payment-service:4005; }
+      upstream notification_service { server notification-service:4006; }
+      upstream analytics_service { server analytics-service:4007; }
+      upstream display_service { server display-service:4008; }
+      server {
+        listen 80;
+        location / { proxy_pass http://web_app; }
+        location /api/auth/ { proxy_pass http://auth_service/api/auth/; }
+        location /api/bookings/ { proxy_pass http://booking_service/api/bookings/; }
+        location /api/equipment/ { proxy_pass http://equipment_service/api/equipment/; }
+        location /api/pricing/ { proxy_pass http://pricing_service/api/pricing/; }
+        location /api/payments/ { proxy_pass http://payment_service/api/payments/; }
+        location /api/notifications/ { proxy_pass http://notification_service/api/notifications/; }
+        location /socket.io/ { proxy_pass http://notification_service/socket.io/; }
+        location /api/analytics/ { proxy_pass http://analytics_service/api/analytics/; }
+        location /api/display/ { proxy_pass http://display_service/api/display/; }
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: courthub
+spec:
+  selector:
+    app: gateway
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-registry
+  namespace: courthub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-registry
+  template:
+    metadata:
+      labels:
+        app: api-registry
+    spec:
+      containers:
+        - name: api-registry
+          image: courthub/api-gateway:latest
+          ports:
+            - containerPort: 4000
+          env:
+            - name: PORT
+              value: "4000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-registry
+  namespace: courthub
+spec:
+  selector:
+    app: api-registry
+  ports:
+    - port: 4000
+      targetPort: 4000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: courthub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: courthub/auth-service:latest
+          ports:
+            - containerPort: 4001
+          env:
+            - name: PORT
+              value: "4001"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: courthub-secrets
+                  key: JWT_SECRET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: courthub
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - port: 4001
+      targetPort: 4001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-service
+  namespace: courthub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: booking-service
+  template:
+    metadata:
+      labels:
+        app: booking-service
+    spec:
+      containers:
+        - name: booking-service
+          image: courthub/booking-service:latest
+          ports:
+            - containerPort: 4002
+          envFrom:
+            - configMapRef:
+                name: courthub-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-service
+  namespace: courthub
+spec:
+  selector:
+    app: booking-service
+  ports:
+    - port: 4002
+      targetPort: 4002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: equipment-service
+  namespace: courthub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: equipment-service
+  template:
+    metadata:
+      labels:
+        app: equipment-service
+    spec:
+      containers:
+        - name: equipment-service
+          image: courthub/equipment-service:latest
+          ports:
+            - containerPort: 4003
+          env:
+            - name: PORT
+              value: "4003"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: equipment-service
+  namespace: courthub
+spec:
+  selector:
+    app: equipment-service
+  ports:
+    - port: 4003
+      targetPort: 4003
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pricing-service
+  namespace: courthub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pricing-service
+  template:
+    metadata:
+      labels:
+        app: pricing-service
+    spec:
+      containers:
+        - name: pricing-service
+          image: courthub/pricing-service:latest
+          ports:
+            - containerPort: 4004
+          env:
+            - name: PORT
+              value: "4004"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pricing-service
+  namespace: courthub
+spec:
+  selector:
+    app: pricing-service
+  ports:
+    - port: 4004
+      targetPort: 4004
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: courthub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: courthub/payment-service:latest
+          ports:
+            - containerPort: 4005
+          env:
+            - name: PORT
+              value: "4005"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: courthub
+spec:
+  selector:
+    app: payment-service
+  ports:
+    - port: 4005
+      targetPort: 4005
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: courthub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: courthub/notification-service:latest
+          ports:
+            - containerPort: 4006
+          env:
+            - name: PORT
+              value: "4006"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: courthub
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - port: 4006
+      targetPort: 4006
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-service
+  namespace: courthub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: analytics-service
+  template:
+    metadata:
+      labels:
+        app: analytics-service
+    spec:
+      containers:
+        - name: analytics-service
+          image: courthub/analytics-service:latest
+          ports:
+            - containerPort: 4007
+          env:
+            - name: PORT
+              value: "4007"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-service
+  namespace: courthub
+spec:
+  selector:
+    app: analytics-service
+  ports:
+    - port: 4007
+      targetPort: 4007
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: display-service
+  namespace: courthub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: display-service
+  template:
+    metadata:
+      labels:
+        app: display-service
+    spec:
+      containers:
+        - name: display-service
+          image: courthub/display-service:latest
+          ports:
+            - containerPort: 4008
+          env:
+            - name: PORT
+              value: "4008"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: display-service
+  namespace: courthub
+spec:
+  selector:
+    app: display-service
+  ports:
+    - port: 4008
+      targetPort: 4008
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: courthub-ingress
+  namespace: courthub
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.courthub.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 80

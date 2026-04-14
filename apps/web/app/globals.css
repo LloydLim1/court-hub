@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #020617;
+  --bg-secondary: rgba(15, 23, 42, 0.78);
+  --bg-card: rgba(15, 23, 42, 0.68);
+  --border-soft: rgba(148, 163, 184, 0.18);
+  --text-primary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent-soft: rgba(56, 189, 248, 0.16);
+  --success: #4ade80;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --purple: #a855f7;
+  --grid-space: 4px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-body), sans-serif;
+  color: var(--text-primary);
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.22), transparent 34%),
+    radial-gradient(circle at top right, rgba(168, 85, 247, 0.18), transparent 28%),
+    linear-gradient(180deg, #020617 0%, #0f172a 100%);
+}
+
+.app-surface::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent 85%);
+  pointer-events: none;
+}
+
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 80px rgba(2, 6, 23, 0.38);
+}
+
+.panel-outline {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.display-heading {
+  font-family: var(--font-display), sans-serif;
+}
+
+.soft-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.soft-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+}
+
+.input-base {
+  width: 100%;
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.82);
+  color: #e2e8f0;
+  padding: 0.875rem 1rem;
+  outline: none;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-base:focus {
+  border-color: rgba(56, 189, 248, 0.8);
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.12);
+}
+
+.validation-shake {
+  animation: field-shake 0.35s ease;
+}
+
+@keyframes field-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-6px);
+  }
+
+  50% {
+    transform: translateX(6px);
+  }
+
+  75% {
+    transform: translateX(-4px);
+  }
+}
+
+.ticker {
+  animation: ticker 20s linear infinite;
+}
+
+@keyframes ticker {
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
