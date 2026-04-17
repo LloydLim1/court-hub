@@ -2,8 +2,8 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 COPY package.json tsconfig.base.json ./
-COPY apps/web/package.json apps/web/package.json
-COPY packages/domain/package.json packages/domain/package.json
+COPY frontend/web/package.json frontend/web/package.json
+COPY shared/domain/package.json shared/domain/package.json
 
 RUN npm install
 

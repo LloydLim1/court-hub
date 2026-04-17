@@ -5,7 +5,7 @@ ARG WORKSPACE
 WORKDIR /app
 
 COPY package.json tsconfig.base.json ./
-COPY packages/domain/package.json packages/domain/package.json
+COPY shared/domain/package.json shared/domain/package.json
 COPY ${WORKSPACE}/package.json ${WORKSPACE}/package.json
 
 RUN npm install

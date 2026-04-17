@@ -4,52 +4,31 @@ CourtHub is a greenfield monorepo for a staff-assisted multi-sport facility plat
 
 ## Workspace Layout
 
-- `apps/web`: Next.js App Router frontend with protected dashboards, booking wizard, display board, Framer Motion animations, Zustand state, and TanStack Query data loading.
-- `packages/domain`: Shared enums, types, sport specs, sample data, pricing helpers, and display rotation constants.
-- `services/*`: NestJS microservices for auth, booking, equipment, pricing, payment, notifications, analytics, display, plus a lightweight API registry service.
+- `frontend/web`: Next.js App Router web app for the public marketplace, login/signup, user dashboard, and admin operations.
+- `mobile/app`: Expo + TypeScript mobile app for the same CourtHub product experience.
+- `shared/domain`: Shared TypeScript domain models, marketplace data, scheduling helpers, and sport constants.
+- `backend/services/*`: NestJS microservices for auth, booking, equipment, pricing, payment, notifications, analytics, display, plus the API gateway.
 - `infra/migrations`: PostgreSQL schema creation with booking overlap protection and required tables.
 - `infra/seeds`: Seed data for staff users, customers, courts, equipment, and pricing rules.
 - `infra/nginx`: Gateway reverse-proxy config for local development.
 - `infra/k8s`: Production Kubernetes manifest bundle.
 
-## Frontend Routes
+## Web Routes
 
 Public:
 
+- `/`
 - `/login`
+- `/signup`
 - `/forgot-password`
 
 Protected:
 
-- `/executive`
-- `/executive/revenue`
-- `/executive/forecasting`
-- `/executive/equipment-revenue`
-- `/executive/customers`
-- `/executive/reports`
-- `/operations`
-- `/operations/calendar`
-- `/operations/transitions`
-- `/operations/no-shows`
-- `/operations/check-in`
-- `/operations/today`
-- `/bookings/new`
-- `/inventory`
-- `/inventory/maintenance`
-- `/inventory/damages`
-- `/inventory/low-stock`
-- `/inventory/history`
-- `/pricing`
-- `/pricing/peak-hours`
-- `/pricing/special-days`
-- `/pricing/history`
-- `/pricing/simulator`
-- `/staff`
-- `/staff/messages`
-- `/staff/shift-logs`
-- `/staff/incidents`
-- `/staff/schedule`
+- `/dashboard`
+- `/admin`
 - `/display`
+
+Legacy routes such as `/executive`, `/operations`, and `/bookings/new` redirect into the new player/admin flows during the transition.
 
 ## Service Ports
 
@@ -87,6 +66,12 @@ Run the web app directly:
 npm run dev:web
 ```
 
+Run the Expo mobile app:
+
+```bash
+npm run dev:mobile
+```
+
 Bring up the full local stack:
 
 ```bash
@@ -95,7 +80,9 @@ docker compose up --build
 
 ## Current Build Notes
 
-- The frontend is production-shaped and route-complete, with exact motion patterns applied to page transitions, live court cards, no-show warnings, booking stepper progress, QR generation, KPI count-up, and display rotation.
+- The web app now centers on a public marketplace home, a player dashboard, and a vendor admin workspace with cleaner blue sports branding.
+- The shared domain package now includes marketplace vendors, courts, demo accounts, booking reservations, and deterministic schedule-availability helpers.
+- The new mobile workspace is scaffolded with Expo Router and TypeScript, but if Expo dependencies are missing locally you may need to rerun `npm install` once network connectivity is stable.
 - The Nest services are scaffolded with domain-specific endpoints and in-memory logic to express the required booking, pricing, payment, and notification flows.
 - PostgreSQL migrations include the required core tables and a GiST exclusion constraint that prevents overlapping bookings on the same court resource.
 - Nginx acts as the local API gateway, while Kubernetes manifests package the web app, gateway, and services for cluster deployment.

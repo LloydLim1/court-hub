@@ -3,15 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "apps/*",
-    "packages/*",
-    "services/*"
+    "frontend/*",
+    "backend/services/*",
+    "mobile/*",
+    "shared/*"
   ],
   "scripts": {
     "build": "npm run build --workspace @courthub/domain && npm run build --workspaces --if-present",
     "dev:web": "npm run build --workspace @courthub/domain && npm run dev --workspace @courthub/web",
+    "dev:mobile": "npm run start --workspace @courthub/mobile-app",
     "lint": "npm run lint --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspace @courthub/domain && npm run typecheck --workspace @courthub/web && npm run typecheck --workspace @courthub/analytics-service && npm run typecheck --workspace @courthub/api-gateway && npm run typecheck --workspace @courthub/auth-service && npm run typecheck --workspace @courthub/booking-service && npm run typecheck --workspace @courthub/display-service && npm run typecheck --workspace @courthub/equipment-service && npm run typecheck --workspace @courthub/notification-service && npm run typecheck --workspace @courthub/payment-service && npm run typecheck --workspace @courthub/pricing-service",
+    "typecheck:mobile": "npm run typecheck --workspace @courthub/mobile-app"
   },
   "engines": {
     "node": ">=20.10.0"

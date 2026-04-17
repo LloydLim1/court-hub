@@ -33,7 +33,7 @@ services:
       context: .
       dockerfile: infra/Dockerfile.service
       args:
-        WORKSPACE: services/api-gateway
+        WORKSPACE: backend/services/api-gateway
     environment:
       PORT: 4000
 
@@ -42,7 +42,7 @@ services:
       context: .
       dockerfile: infra/Dockerfile.service
       args:
-        WORKSPACE: services/auth-service
+        WORKSPACE: backend/services/auth-service
     environment:
       PORT: 4001
 
@@ -51,7 +51,7 @@ services:
       context: .
       dockerfile: infra/Dockerfile.service
       args:
-        WORKSPACE: services/booking-service
+        WORKSPACE: backend/services/booking-service
     environment:
       PORT: 4002
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/courthub
@@ -62,7 +62,7 @@ services:
       context: .
       dockerfile: infra/Dockerfile.service
       args:
-        WORKSPACE: services/equipment-service
+        WORKSPACE: backend/services/equipment-service
     environment:
       PORT: 4003
 
@@ -71,7 +71,7 @@ services:
       context: .
       dockerfile: infra/Dockerfile.service
       args:
-        WORKSPACE: services/pricing-service
+        WORKSPACE: backend/services/pricing-service
     environment:
       PORT: 4004
 
@@ -80,7 +80,7 @@ services:
       context: .
       dockerfile: infra/Dockerfile.service
       args:
-        WORKSPACE: services/payment-service
+        WORKSPACE: backend/services/payment-service
     environment:
       PORT: 4005
 
@@ -89,7 +89,7 @@ services:
       context: .
       dockerfile: infra/Dockerfile.service
       args:
-        WORKSPACE: services/notification-service
+        WORKSPACE: backend/services/notification-service
     environment:
       PORT: 4006
 
@@ -98,7 +98,7 @@ services:
       context: .
       dockerfile: infra/Dockerfile.service
       args:
-        WORKSPACE: services/analytics-service
+        WORKSPACE: backend/services/analytics-service
     environment:
       PORT: 4007
 
@@ -107,7 +107,7 @@ services:
       context: .
       dockerfile: infra/Dockerfile.service
       args:
-        WORKSPACE: services/display-service
+        WORKSPACE: backend/services/display-service
     environment:
       PORT: 4008
 

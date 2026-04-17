@@ -17,7 +17,7 @@
     "baseUrl": ".",
     "paths": {
       "@courthub/domain": [
-        "packages/domain/src"
+        "shared/domain/src"
       ]
     }
   }
